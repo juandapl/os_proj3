@@ -2,7 +2,7 @@
 #include <sys/ipc.h>
 #include <semaphore.h>
 
-#define N_ACTIVE_WRITERS 10
+#define N_ACTIVE_WRITERS 2
 #define N_ACTIVE_READERS 100
 
 typedef struct WriteHead
@@ -28,8 +28,9 @@ typedef struct MemoryState
     int active_readers;
     Reader readers[N_ACTIVE_READERS];
     char test[6];
-    sem_t cs_mutex; // protects memory access
+    sem_t* cs_mutex; // protects memory access
     sem_t writers_mutex; // protects active_writers
-    sem_t barber;
-    sem_t customers;
+    sem_t* barber;
+    sem_t* customers;
+    int waiting;
 } MemoryState;
