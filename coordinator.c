@@ -11,6 +11,7 @@
 #include <signal.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <fcntl.h>
 
 void initialize_shared_struct(MemoryState* state)
 {
@@ -35,9 +36,9 @@ void initialize_shared_struct(MemoryState* state)
     
     // initialize semaphores TODO
     int isVal;
-    state->customers = (sem_t*) malloc(sizeof(sem_t));
-    state->barber = (sem_t*) malloc(sizeof(sem_t));
-    state->cs_mutex = (sem_t*) malloc(sizeof(sem_t));
+    // state->customers = (sem_t*) malloc(sizeof(sem_t));
+    // state->barber = (sem_t*) malloc(sizeof(sem_t));
+    // state->cs_mutex = (sem_t*) malloc(sizeof(sem_t));
     sem_unlink("/customers");
     sem_unlink("/barber");
     sem_unlink("/cs_mutex");
@@ -64,7 +65,7 @@ int main()
     // attach shared mem and initialize the shared struct
     MemoryState* state = shmat(id, NULL, 0);
     initialize_shared_struct(state);
-    // strcpy(state->test, "test");
+    strcpy(state->test, "test");
 
     // // pause for test
     // printf("Enter when you're done: ");

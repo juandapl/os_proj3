@@ -34,3 +34,6 @@ typedef struct MemoryState
     sem_t* customers;
     int waiting;
 } MemoryState;
+
+
+// todo change all to unnamed semaphores
