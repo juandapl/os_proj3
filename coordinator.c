@@ -36,15 +36,9 @@ void initialize_shared_struct(MemoryState* state)
     
     // initialize semaphores TODO
     int isVal;
-    // state->customers = (sem_t*) malloc(sizeof(sem_t));
-    // state->barber = (sem_t*) malloc(sizeof(sem_t));
-    // state->cs_mutex = (sem_t*) malloc(sizeof(sem_t));
-    sem_unlink("/customers");
-    sem_unlink("/barber");
-    sem_unlink("/cs_mutex");
-    state->customers = sem_open("/customers", O_CREAT, S_IRUSR, 0);
-    state->barber = sem_open("/barber", O_CREAT, S_IRUSR, 0);
-    state->cs_mutex = sem_open("/cs_mutex", O_CREAT, S_IRUSR, 1);
+    sem_init(&(state->cs_mutex), 1, 1);
+    sem_init(&(state->barber), 1, 0);
+    sem_init(&(state->customers), 1, 0);
 }
 
 void destroy_shared_struct(MemoryState* state)
@@ -74,19 +68,19 @@ int main()
 
     while(1){
         printf("barber sleep\n");
-        sem_wait(state->customers);
-        printf("barber woke\n");
-        sem_wait(state->cs_mutex);
-        state->waiting--;
-        sem_post(state->barber);
-        sem_post(state->cs_mutex);
+        sem_wait(&(state->customers));
+        printf("barber woke (new customer!)\n");
+        sem_wait(&(state->cs_mutex));
         for(int i = 0; i < N_ACTIVE_WRITERS; i++){
             if(state->write_heads[i].current_writer!=0&&state->write_heads[i].active==0){
                 state->write_heads[i].active=1;
-                kill(state->write_heads[i].current_writer, SIGUSR1);
+                printf("sending signal to proccess: %d in pos: %d\n", state->write_heads[i].current_writer, i);
+                // kill(state->write_heads[i].current_writer, SIGUSR1);
                 break;
             }
         }
+        sem_post(&(state->barber));
+        sem_post(&(state->cs_mutex));
         // give-a-haircut(); -> allow writer to write to x if another writer isn't already writing to x
     }
     int err = shmctl(id, IPC_RMID, 0);

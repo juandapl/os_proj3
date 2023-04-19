@@ -28,10 +28,10 @@ typedef struct MemoryState
     int active_readers;
     Reader readers[N_ACTIVE_READERS];
     char test[6];
-    sem_t* cs_mutex; // protects memory access
+    sem_t cs_mutex; // protects memory access
     sem_t writers_mutex; // protects active_writers
-    sem_t* barber;
-    sem_t* customers;
+    sem_t barber;
+    sem_t customers;
     int waiting;
 } MemoryState;
 
