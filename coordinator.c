@@ -27,11 +27,13 @@ void initialize_shared_struct(MemoryState* state)
     }
     state->active_writers = 0;
     state->active_readers = 0;
-    state->waiting = 0;
     for(int i = 0; i < N_ACTIVE_READERS; i++)
     {
         state->readers[i].done = 0;
         state->readers[i].segment_number = 0;
+        state->readers[i].init = 0;
+        state->readers[i].active = 0;
+        state->readers[i].current_reader = 0;
     }
     
     // initialize semaphores TODO
@@ -39,6 +41,8 @@ void initialize_shared_struct(MemoryState* state)
     sem_init(&(state->cs_mutex), 1, 1);
     sem_init(&(state->barber), 1, 0);
     sem_init(&(state->customers), 1, 0);
+    sem_init(&(state->waiting_readers), 1, 0);
+    sem_init(&(state->reader_barber), 1, 0);
 }
 
 void destroy_shared_struct(MemoryState* state)
@@ -65,23 +69,24 @@ int main()
     // printf("Enter when you're done: ");
     // char inputbuff[256];
     // fgets(inputbuff, 256, stdin);
-
-    while(1){
-        printf("barber sleep\n");
-        sem_wait(&(state->customers));
-        printf("barber woke (new customer!)\n");
-        sem_wait(&(state->cs_mutex));
-        for(int i = 0; i < N_ACTIVE_WRITERS; i++){
-            if(state->write_heads[i].current_writer!=0&&state->write_heads[i].active==0){
-                state->write_heads[i].active=1;
-                printf("sending signal to proccess: %d in pos: %d\n", state->write_heads[i].current_writer, i);
-                // kill(state->write_heads[i].current_writer, SIGUSR1);
-                break;
-            }
+    int pid = fork();
+    if(pid==0){
+        printf("IN CHILD: readers\n");
+        while(1){
+            printf("barber sleep\n");
+            sem_wait(&(state->waiting_readers));
+            printf("barber woke (new customer!)\n");
+            sem_post(&(state->reader_barber));
         }
-        sem_post(&(state->barber));
-        sem_post(&(state->cs_mutex));
-        // give-a-haircut(); -> allow writer to write to x if another writer isn't already writing to x
+    }else{
+        printf("in parent: readers\n");
+        while(1){
+            printf("barber sleep: writers\n");
+            sem_wait(&(state->customers));
+            printf("barber woke (new customer!)\n");
+            sem_post(&(state->barber));
+            // give-a-haircut(); -> allow writer to write to x if another writer isn't already writing to x
+        }
     }
     int err = shmctl(id, IPC_RMID, 0);
 }

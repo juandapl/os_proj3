@@ -19,6 +19,8 @@ typedef struct Reader
     int segment_number;
     pid_t current_reader;
     int done;
+    int active;
+    int init;
 } Reader;
 
 typedef struct MemoryState
@@ -32,6 +34,8 @@ typedef struct MemoryState
     sem_t writers_mutex; // protects active_writers
     sem_t barber;
     sem_t customers;
+    sem_t waiting_readers;
+    sem_t reader_barber;
     int waiting;
 } MemoryState;
 
