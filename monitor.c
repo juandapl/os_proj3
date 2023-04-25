@@ -55,8 +55,7 @@ int main(int argc, char** argv)
     {
         if(state->write_heads[i].current_writer != 0)
         {
-            sem_getvalue(&(state->write_heads[i].proc_queue), &semvalue);
-            printf("%d, %d, %d, %d, %d\n", state->write_heads[i].current_writer,state->write_heads[i].segment_number,state->write_heads[i].active,state->write_heads[i].done, semvalue);
+            printf("%d, %d, %d, %d, %d\n", state->write_heads[i].current_writer,state->write_heads[i].segment_number,state->write_heads[i].active,state->write_heads[i].done, state->write_heads[i].waiting_readers);
         }
     }
     printf("\n");

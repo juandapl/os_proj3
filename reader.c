@@ -22,10 +22,10 @@ int canRead(int segment, MemoryState* state, int* blocking_writer){
             state->write_heads[i].segment_number==segment
            )
         {
-            printf("%d\n", i);
         	if(state->write_heads[i].active==1){
                 *blocking_writer = i; // which writer is blocking me?
                 printf("Blocked by WriteHead Active %d\n", *blocking_writer);
+                state->write_heads[i].waiting_readers ++;
             	return 0;
         	}
         }
@@ -147,7 +147,7 @@ int main(int argc, char** argv)
                 sem_post(&(state->cs_mutex));
                 // line up behind the writer head that is currently using my segment:
                 printf("%d is blocking me\n",  state->write_heads[blocking_writer].current_writer);
-                sem_wait(&(state->write_heads[blocking_writer].proc_queue));
+                sem_wait(&(state->write_heads[blocking_writer].proc_queue)); 
             }
         }
     }

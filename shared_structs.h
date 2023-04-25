@@ -15,6 +15,7 @@ typedef struct WriteHead
     pid_t current_writer;
     int active;
     int done;
+    int waiting_readers;
 } WriteHead;
 
 typedef struct Reader

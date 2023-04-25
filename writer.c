@@ -139,12 +139,11 @@ int main(int argc, char** argv)
             state->active_writers--;
 
             // todo after exiting, flush all readers queuing behind your writer head: (until sem value reaches 0)
-            int writer_head_queue_value;
-            sem_getvalue(&(state->write_heads[stored_at].proc_queue), &writer_head_queue_value);
-            printf("I have %d behind me", writer_head_queue_value);
-            while (writer_head_queue_value < 0)
+            printf("I have %d behind me", state->write_heads[stored_at].waiting_readers);
+            while (state->write_heads[stored_at].waiting_readers > 0)
             {
-                sem_post(&(state->write_heads[stored_at].proc_queue));
+                state->write_heads[stored_at].waiting_readers--;
+                sem_post(&(state->write_heads[stored_at].proc_queue));   // test
             }
 
            sem_post(&(state->cs_mutex));

@@ -22,6 +22,7 @@ void initialize_shared_struct(MemoryState* state)
         state->write_heads[i].active = 0;
         state->write_heads[i].done = 0;
         state->write_heads[i].current_writer = 0;
+        state->write_heads[i].waiting_readers = 0;
         retval = sem_init(&(state->write_heads[i].proc_queue), 1, 0);
 
     }
