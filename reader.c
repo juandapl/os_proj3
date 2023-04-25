@@ -12,6 +12,7 @@
 #include <stdlib.h>
 #include <semaphore.h>
 
+
 int stored_at;
 MemoryState* state;
 int canRead(int segment, MemoryState* state){

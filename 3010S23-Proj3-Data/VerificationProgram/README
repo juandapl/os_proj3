@@ -1,0 +1,8 @@
+- To compile the verification program just type up make
+
+- If you want to extract out of a BIN file the data in ASCII (text) format run:
+
+./Verify ../DatasetsInBinary/Dataset-500.bin
+
+ The above will generate from the binary format all the recrods found in Dataset-500.bin 
+ and will produce 500 records of students

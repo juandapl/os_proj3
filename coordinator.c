@@ -78,7 +78,8 @@ int main()
             printf("barber woke (new customer!)\n");
             sem_post(&(state->reader_barber));
         }
-    }else{
+    }
+    else{
         printf("in parent: readers\n");
         while(1){
             printf("barber sleep: writers\n");

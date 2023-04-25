@@ -1,8 +1,11 @@
+#ifndef STRUCTS
+#define STRUCTS
+
 #include <sys/types.h>
 #include <sys/ipc.h>
 #include <semaphore.h>
 
-#define N_ACTIVE_WRITERS 2
+#define N_ACTIVE_WRITERS 10
 #define N_ACTIVE_READERS 100
 
 typedef struct WriteHead
@@ -39,5 +42,19 @@ typedef struct MemoryState
     int waiting;
 } MemoryState;
 
+// from Prof. Delis
 
-// todo change all to unnamed semaphores
+#define SIZEofBUFF 20
+#define NumOfCourses 8
+
+typedef struct{
+	long  	custid; 
+	char 	FirstName[SIZEofBUFF];
+	char 	LastName[SIZEofBUFF];
+	float   Marks[NumOfCourses];
+	float   GPA;
+} MyRecord;
+
+
+
+#endif
