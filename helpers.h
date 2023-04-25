@@ -7,4 +7,6 @@
 #define HELP
 
 void read_record(FILE* fh, int segment_number, MyRecord* dest);
+
+int* separate_commas(char* thing, int* size);
 #endif

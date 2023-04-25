@@ -137,6 +137,15 @@ int main(int argc, char** argv)
             state->write_heads[stored_at].done = 1;
             state->write_heads[stored_at].active = 0;
             state->active_writers--;
+
+            // todo after exiting, flush all readers queuing behind your writer head: (until sem value reaches 0)
+            int writer_head_queue_value;
+            sem_getvalue(&(state->write_heads[stored_at].proc_queue), &writer_head_queue_value);
+            while (writer_head_queue_value != 0)
+            {
+                sem_post(&(state->write_heads[stored_at].proc_queue))
+            }
+
            sem_post(&(state->cs_mutex));
 
            break;

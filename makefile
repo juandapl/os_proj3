@@ -9,11 +9,14 @@ writer: writer.o helpers.o
 monitor: monitor.c shared_structs.h
 	gcc monitor.c -o monitor -lpthread
 
-reader: reader.c shared_structs.h
-	gcc reader.c -o reader -lpthread
+reader: reader.o helpers.o
+	gcc reader.o helpers.o -o reader -lpthread
 
 writer.o: writer.c shared_structs.h
 	gcc writer.c -c
+
+reader.o: reader.c shared_structs.h
+	gcc reader.c -c
 
 coordinator: coordinator.c shared_structs.h
 	gcc coordinator.c -o coordinator -lpthread
