@@ -20,9 +20,12 @@ int canRead(int segment, MemoryState* state, int* blocking_writer){
     for(int i = 0; i < N_ACTIVE_WRITERS; i++){
         if(
             state->write_heads[i].segment_number==segment
-           ){
+           )
+        {
+            printf("%d\n", i);
         	if(state->write_heads[i].active==1){
                 *blocking_writer = i; // which writer is blocking me?
+                printf("Blocked by WriteHead Active %d\n", *blocking_writer);
             	return 0;
         	}
         }
@@ -30,8 +33,16 @@ int canRead(int segment, MemoryState* state, int* blocking_writer){
     return 1;
 }
 
-void readFile(int segnum){
-	printf("reading: %d\n", segnum);
+void readFile(int time, char* path, int segment_number){
+    printf("ACCESSING %d\n", segment_number);
+    sleep(time);
+    MyRecord* incoming_record = (MyRecord*) malloc(sizeof(MyRecord));
+    FILE* fh = fopen (path, "rb");
+
+    read_record(fh, segment_number, incoming_record);
+    fclose(fh);
+    printf("Accessed: %ld %s %s GPA: %.2f\n", incoming_record->custid, incoming_record->FirstName, incoming_record->LastName, incoming_record->GPA);
+    printf("DONE!\n");
 }
 
 int main(int argc, char** argv)
@@ -87,18 +98,17 @@ int main(int argc, char** argv)
     state = shmat(id, NULL, 0);
     int blocking_writer;
 
-    while(1){
-        // do this for every segment id asked for!
-        for(int n = 0; n < n_segments; n++)
-        {
-            mynum = segments[n];
-
+   for(int n = 0; n < n_segments; n++){
+        // do this for every segment i asked for!
+        int mynum = segments[n];
+        
+         while(1){
             sem_wait(&(state->cs_mutex));
             // Check if we can read. If we can read, read! (duh).
             // If we cannot read, line up behind the writer currently accessing our record.
             if(canRead(mynum, state, &blocking_writer)==1 &&
                 state->active_readers < N_ACTIVE_READERS)
-                {
+            {
                 state->active_readers++;
                 for(int i = 0; i < N_ACTIVE_READERS; i++){
                 if(state->readers[i].done==1 || state->readers[i].init==0){
@@ -120,7 +130,7 @@ int main(int argc, char** argv)
                 state->readers[stored_at].active = 1;
                 sem_post(&(state->cs_mutex));
 
-                readFile(mynum);
+                readFile(time, path, mynum);
 
                 // i'm out!
                 sem_wait(&(state->cs_mutex));
@@ -132,12 +142,16 @@ int main(int argc, char** argv)
 
                 break;
                 printf("I AM READING %d\n", mynum);
-            }else{
+            }
+            else{
                 sem_post(&(state->cs_mutex));
                 // line up behind the writer head that is currently using my segment:
+                printf("%d is blocking me\n",  state->write_heads[blocking_writer].current_writer);
                 sem_wait(&(state->write_heads[blocking_writer].proc_queue));
             }
         }
     }
-    readFile(mynum);
+
+    // todo after done, delete urself from active readers
+    
 }

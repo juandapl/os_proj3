@@ -37,3 +37,5 @@ int* separate_commas(char* thing, int* size) // this is annoying
     *size = n_things;
     return dest;
 }
+
+

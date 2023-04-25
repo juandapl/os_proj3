@@ -113,7 +113,7 @@ int main(int argc, char** argv)
                // place myself in writeheads (ie barber-queue)
                if(state->write_heads[i].current_writer==0 || state->write_heads[i].done==1){
                    state->write_heads[i].segment_number = record;
-                   state->write_heads[i].active = 0;
+                   state->write_heads[i].active = 1;
                    state->write_heads[i].current_writer = getpid();
                    state->write_heads[i].done = 0;
                    stored_at = i;
@@ -141,9 +141,10 @@ int main(int argc, char** argv)
             // todo after exiting, flush all readers queuing behind your writer head: (until sem value reaches 0)
             int writer_head_queue_value;
             sem_getvalue(&(state->write_heads[stored_at].proc_queue), &writer_head_queue_value);
-            while (writer_head_queue_value != 0)
+            printf("I have %d behind me", writer_head_queue_value);
+            while (writer_head_queue_value < 0)
             {
-                sem_post(&(state->write_heads[stored_at].proc_queue))
+                sem_post(&(state->write_heads[stored_at].proc_queue));
             }
 
            sem_post(&(state->cs_mutex));

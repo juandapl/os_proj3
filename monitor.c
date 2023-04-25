@@ -1,4 +1,5 @@
 // monitor.c: displays state of affairs of the thing
+// ./monitor -s shared mem id -> gives you a snapshot of the state of affairs. 
 // by Nicholas Raffone and Juan Piñeros
 
 #include "shared_structs.h"
@@ -44,15 +45,18 @@ int main(int argc, char** argv)
     
     system("clear");
 
+    int semvalue;
+
     sem_wait(&(state->cs_mutex));
     printf("=== ACTIVE WRITERS: %d ===\n", state->active_writers);
 
-    printf("Writer PID, Segment Number, Active, Done\n");
+    printf("Writer PID, Segment Number, Active, Done, Readers Queued\n");
     for(int i = 0; i < N_ACTIVE_WRITERS; i++)
     {
         if(state->write_heads[i].current_writer != 0)
         {
-        printf("%d, %d, %d, %d\n", state->write_heads[i].current_writer,state->write_heads[i].segment_number,state->write_heads[i].active,state->write_heads[i].done);
+            sem_getvalue(&(state->write_heads[i].proc_queue), &semvalue);
+            printf("%d, %d, %d, %d, %d\n", state->write_heads[i].current_writer,state->write_heads[i].segment_number,state->write_heads[i].active,state->write_heads[i].done, semvalue);
         }
     }
     printf("\n");
