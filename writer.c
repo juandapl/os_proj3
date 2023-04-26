@@ -12,6 +12,7 @@
 #include <stdlib.h>
 #include <semaphore.h>
 #include "helpers.h"
+#include <sys/times.h> /* times() */
 
 int stored_at;
 MemoryState* state;
@@ -57,6 +58,13 @@ int canQueue(int segment, MemoryState* state){
 
 int main(int argc, char** argv)
 {
+
+    double t1, t2, cpu_time;
+    struct tms tb1, tb2;
+    double ticspersec;
+    int i, sum = 0;
+    ticspersec = (double) sysconf(_SC_CLK_TCK);
+    t1 = (double) times(&tb1);
     int id;
     char path[256];
     int record;
@@ -94,9 +102,17 @@ int main(int argc, char** argv)
                 exit(0);
         }
 
+    state = shmat(id, NULL, 0);
+
+    FILE* logFile = fopen("log.txt", 'a');
+    t2 = (double) times(&tb2);
+
+    sem_wait(&(state->log_mutex));
+    fprintf(logFile, "%lf WRITER STARTED PID: %d, ACCESSING: %d\n", t2, getpid(), record);
+    sem_post(&(state->log_mutex));
+
     printf("I AM %d (WRITER), I want to access segment %d\n", getpid(), record);
 
-    state = shmat(id, NULL, 0);
     int ticket_id = -1;
     while(1){
         sem_wait(&(state->cs_mutex));
@@ -135,11 +151,15 @@ int main(int argc, char** argv)
            //printf("active is now %d\n", state->write_heads[stored_at].active);
            //sem_post(&(state->cs_mutex));
 
-           printf("I have been chosen\n");
-           readFile(time, path);
+            t2 = (double) times(&tb2);
+            sem_wait(&(state->log_mutex));
+            fprintf(logFile, "%lf WRITER WRITING PID: %d, ACCESSING: %d\n", t2, getpid(), record);
+            sem_post(&(state->log_mutex));
+
+            readFile(time, path);
            
            // say you're done and not active anymore
-           sem_wait(&(state->cs_mutex));
+            sem_wait(&(state->cs_mutex));
             state->write_heads[stored_at].done = 1;
             state->write_heads[stored_at].active = 0;
             state->active_writers--;
@@ -160,8 +180,15 @@ int main(int argc, char** argv)
            sem_post(&(state->cs_mutex));
         }
     }    
+
+    // log stats here in console and in file
+    t2 = (double) times(&tb2);
+    printf("Run time was %lf sec.\n",(t2 - t1) / ticspersec);
+    sem_wait(&(state->log_mutex));
+    fprintf(logFile, "%lf WRITER COMPLETE PID: %d, ACCESSING: %d\n", t2, getpid(), record);
+    sem_post(&(state->log_mutex));
+    fclose(logFile);
     return 0;
-    
 }
 
 // void handle_usrsig1(){

@@ -48,6 +48,7 @@ void initialize_shared_struct(MemoryState* state)
     sem_init(&(state->customers), 1, 0);
     sem_init(&(state->waiting_readers), 1, 0);
     sem_init(&(state->reader_barber), 1, 0);
+    sem_init(&(state->log_mutex), 1, 1);
 }
 
 void destroy_shared_struct(MemoryState* state)

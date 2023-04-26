@@ -12,7 +12,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <semaphore.h>
-
+#include <sys/times.h> /* times() */
 
 int stored_at;
 MemoryState* state;
@@ -54,6 +54,12 @@ int main(int argc, char** argv)
     char c;
     int* segments;
     int n_segments;
+    double t1, t2, cpu_time;
+    struct tms tb1, tb2;
+    double ticspersec;
+    int i, sum = 0;
+    ticspersec = (double) sysconf(_SC_CLK_TCK);
+    t1 = (double) times(&tb1);
 
     // ./reader -f filename -l record-id,[,record-id,record-id...] -d pause time -s shared mem id
     if(argc != 9)
@@ -86,6 +92,21 @@ int main(int argc, char** argv)
     printf("I AM %d (READER) \n", getpid());
 
     segments = separate_commas(segment_numbers, &n_segments);
+
+    FILE* logFile = fopen("log.txt", 'a');
+    t2 = (double) times(&tb2);
+
+    sem_wait(&(state->log_mutex));
+
+    fprintf(logFile, "%lf READER STARTED PID: %d, ACCESSING: ", t2, getpid());
+
+    for(int i = 0; i < n_segments; i++)
+    {
+        fprintf(logFile, "%d ", segments[i]);
+    }
+    fprintf(logFile, "\n");
+
+    sem_post(&(state->log_mutex));
 
     printf("I want to read segments: ");
 
@@ -136,6 +157,11 @@ int main(int argc, char** argv)
                 state->readers[stored_at].active = 1;
                 sem_post(&(state->cs_mutex));
 
+                t2 = (double) times(&tb2);
+                sem_wait(&(state->log_mutex));
+                fprintf(logFile, "%lf READER READING PID: %d, ACCESSING: %d\n", t2, getpid(), mynum);
+                sem_post(&(state->log_mutex));
+
                 readFile(time, path, mynum);
 
                 // i'm out!
@@ -157,7 +183,17 @@ int main(int argc, char** argv)
             }
         }
     }
-
+    t2 = (double) times(&tb2);
+    printf("Run time was %lf sec.\n",(t2 - t1) / ticspersec);
+    sem_wait(&(state->log_mutex));
+    fprintf(logFile, "%lf READER COMPLETE PID: %d, ACCESSING: \n", t2, getpid());
+    for(int i = 0; i < n_segments; i++)
+    {
+        fprintf(logFile, "%d ", segments[i]);
+    }
+    fprintf(logFile, "\n");
+    sem_post(&(state->log_mutex));
+    fclose(logFile);
     // todo after done, delete urself from active readers
     
 }

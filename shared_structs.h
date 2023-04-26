@@ -40,6 +40,7 @@ typedef struct MemoryState
     sem_t customers;
     sem_t waiting_readers;
     sem_t reader_barber;
+    sem_t log_mutex;
     int waiting;
     int next_write_ticket;
     int curr_write_ticket;
