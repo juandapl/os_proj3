@@ -104,11 +104,13 @@ int main(int argc, char** argv)
 
     state = shmat(id, NULL, 0);
 
-    FILE* logFile = fopen("log.txt", "a");
+    FILE* logFile;
     t2 = (double) times(&tb2);
 
     sem_wait(&(state->log_mutex));
+    logFile = fopen("log.txt", "a");
     fprintf(logFile, "%lf WRITER STARTED PID: %d, ACCESSING: %d\n", t2, getpid(), record);
+    fclose(logFile);
     sem_post(&(state->log_mutex));
 
     printf("I AM %d (WRITER), I want to access segment %d\n", getpid(), record);
@@ -153,7 +155,9 @@ int main(int argc, char** argv)
 
             t2 = (double) times(&tb2);
             sem_wait(&(state->log_mutex));
+            logFile = fopen("log.txt", "a");
             fprintf(logFile, "%lf WRITER WRITING PID: %d, ACCESSING: %d\n", t2, getpid(), record);
+            fclose(logFile);
             sem_post(&(state->log_mutex));
 
             readFile(time, path);
@@ -185,9 +189,10 @@ int main(int argc, char** argv)
     t2 = (double) times(&tb2);
     printf("Run time was %lf sec.\n",(t2 - t1) / ticspersec);
     sem_wait(&(state->log_mutex));
+    logFile = fopen("log.txt", "a");
     fprintf(logFile, "%lf WRITER COMPLETE PID: %d, ACCESSING: %d\n", t2, getpid(), record);
-    sem_post(&(state->log_mutex));
     fclose(logFile);
+    sem_post(&(state->log_mutex));
     return 0;
 }
 

@@ -38,7 +38,6 @@ void readFile(int time, char* path, int segment_number){
     sleep(time);
     MyRecord* incoming_record = (MyRecord*) malloc(sizeof(MyRecord));
     FILE* fh = fopen (path, "rb");
-
     read_record(fh, segment_number, incoming_record);
     fclose(fh);
     printf("Accessed: %ld %s %s GPA: %.2f\n", incoming_record->custid, incoming_record->FirstName, incoming_record->LastName, incoming_record->GPA);
@@ -89,14 +88,16 @@ int main(int argc, char** argv)
                 exit(0);
         }
 
+    state = shmat(id, NULL, 0);
+
     printf("I AM %d (READER) \n", getpid());
 
     segments = separate_commas(segment_numbers, &n_segments);
-
-    FILE* logFile = fopen("log.txt", "a");
+    FILE* logFile;
     t2 = (double) times(&tb2);
 
     sem_wait(&(state->log_mutex));
+    logFile = fopen("log.txt", "a");
 
     fprintf(logFile, "%lf READER STARTED PID: %d, ACCESSING: ", t2, getpid());
 
@@ -105,6 +106,8 @@ int main(int argc, char** argv)
         fprintf(logFile, "%d ", segments[i]);
     }
     fprintf(logFile, "\n");
+
+    fclose(logFile);
 
     sem_post(&(state->log_mutex));
 
@@ -116,7 +119,6 @@ int main(int argc, char** argv)
     }
     printf("\n");
 
-    state = shmat(id, NULL, 0);
     int blocking_writer;
     int ticket_id;
     for(int n = 0; n < n_segments; n++){
@@ -137,6 +139,7 @@ int main(int argc, char** argv)
                 ticket_id == state->curr_read_ticket
             ){
                 state->active_readers++;
+                state->curr_read_ticket++;
                 for(int i = 0; i < N_ACTIVE_READERS; i++){
                     if(state->readers[i].done==1 || state->readers[i].init==0){
                         state->readers[i].active = 0;
@@ -159,7 +162,9 @@ int main(int argc, char** argv)
 
                 t2 = (double) times(&tb2);
                 sem_wait(&(state->log_mutex));
+                logFile = fopen("log.txt", "a");
                 fprintf(logFile, "%lf READER READING PID: %d, ACCESSING: %d\n", t2, getpid(), mynum);
+                fclose(logFile);
                 sem_post(&(state->log_mutex));
 
                 readFile(time, path, mynum);
@@ -186,14 +191,15 @@ int main(int argc, char** argv)
     t2 = (double) times(&tb2);
     printf("Run time was %lf sec.\n",(t2 - t1) / ticspersec);
     sem_wait(&(state->log_mutex));
-    fprintf(logFile, "%lf READER COMPLETE PID: %d, ACCESSING: \n", t2, getpid());
+    logFile = fopen("log.txt", "a");
+    fprintf(logFile, "%lf READER COMPLETE PID: %d, ACCESSING: ", t2, getpid());
     for(int i = 0; i < n_segments; i++)
     {
         fprintf(logFile, "%d ", segments[i]);
     }
     fprintf(logFile, "\n");
-    sem_post(&(state->log_mutex));
     fclose(logFile);
+    sem_post(&(state->log_mutex));
     // todo after done, delete urself from active readers
     
 }

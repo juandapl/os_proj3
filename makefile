@@ -1,7 +1,7 @@
 all: writer coordinator reader monitor
 
 clean:
-	rm -f writer coordinator reader helpers.o writer.o
+	rm -f writer coordinator reader helpers.o writer.o reader.o
 
 writer: writer.o helpers.o
 	gcc writer.o helpers.o -o writer -lpthread
@@ -10,7 +10,7 @@ monitor: monitor.c shared_structs.h
 	gcc monitor.c -o monitor -lpthread
 
 reader: reader.o helpers.o
-	gcc reader.o helpers.o -o reader -lpthread
+	gcc reader.o helpers.o -g -o reader -lpthread
 
 writer.o: writer.c shared_structs.h
 	gcc writer.c -c

@@ -10,7 +10,9 @@
 void read_record(FILE* fh, int segment_number, MyRecord* dest)
 {
     FILE* temp = fh;
-    fseek(temp, segment_number*sizeof(MyRecord), SEEK_SET);     
+    printf("seg: %d\n", segment_number);
+    printf("size: %ld\n", sizeof(MyRecord));
+    fseek(temp, segment_number*sizeof(MyRecord), SEEK_SET);   
     fread(dest, sizeof(MyRecord), 1, temp);
 }
 
