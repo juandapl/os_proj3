@@ -13,6 +13,10 @@
 #include <stdlib.h>
 #include <fcntl.h>
 
+MemoryState* state;
+int id;
+int pid;
+
 void initialize_shared_struct(MemoryState* state)
 {
     int retval;
@@ -53,13 +57,32 @@ void initialize_shared_struct(MemoryState* state)
 
 void destroy_shared_struct(MemoryState* state)
 {
+    sem_destroy(&(state->cs_mutex));
+    sem_destroy(&(state->barber));
+    sem_destroy(&(state->customers));
+    sem_destroy(&(state->waiting_readers));
+    sem_destroy(&(state->reader_barber));
+    sem_destroy(&(state->log_mutex));
+}
 
+void handle_exit()
+{
+    printf("GOT CTRL+C\n");
+    signal(SIGINT, handle_exit);
+    destroy_shared_struct(state);
+    if(pid > 0){
+        int status;
+        kill(pid, SIGKILL);
+        waitpid(pid, &status, 0);
+    }
+    int err = shmctl(id, IPC_RMID, 0);
+    exit(0);
 }
 
 int main()
 {
     // create shared memory segment
-    int id = shmget(IPC_PRIVATE, sizeof(MemoryState), 0666);
+    id = shmget(IPC_PRIVATE, sizeof(MemoryState), 0666);
     if(id==-1){
         printf("error opening shared memory\n");
         return 1;
@@ -67,7 +90,7 @@ int main()
     printf("%d\n", (int) id);
 
     // attach shared mem and initialize the shared struct
-    MemoryState* state = shmat(id, NULL, 0);
+    state = shmat(id, NULL, 0);
     initialize_shared_struct(state);
     strcpy(state->test, "test");
 
@@ -75,7 +98,7 @@ int main()
     // printf("Enter when you're done: ");
     // char inputbuff[256];
     // fgets(inputbuff, 256, stdin);
-    int pid = fork();
+    pid = fork();
     if(pid==0){
         printf("IN CHILD: readers\n");
         while(1){
@@ -86,6 +109,7 @@ int main()
         }
     }
     else{
+        signal(SIGINT, handle_exit);
         printf("in parent: readers\n");
         while(1){
             printf("barber sleep: writers\n");
@@ -95,5 +119,4 @@ int main()
             // give-a-haircut(); -> allow writer to write to x if another writer isn't already writing to x
         }
     }
-    int err = shmctl(id, IPC_RMID, 0);
 }

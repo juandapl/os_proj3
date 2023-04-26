@@ -30,6 +30,7 @@ void readFile(int time, char* path){
     read_record(fh, state->write_heads[stored_at].segment_number, incoming_record);
     fclose(fh);
     printf("Accessed: %ld %s %s GPA: %.2f\n", incoming_record->custid, incoming_record->FirstName, incoming_record->LastName, incoming_record->GPA);
+    free(incoming_record);
     printf("DONE!\n");
 }
 

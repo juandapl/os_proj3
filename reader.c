@@ -41,6 +41,7 @@ void readFile(int time, char* path, int segment_number){
     read_record(fh, segment_number, incoming_record);
     fclose(fh);
     printf("Accessed: %ld %s %s GPA: %.2f\n", incoming_record->custid, incoming_record->FirstName, incoming_record->LastName, incoming_record->GPA);
+    free(incoming_record);
     printf("DONE!\n");
 }
 
@@ -201,5 +202,6 @@ int main(int argc, char** argv)
     fclose(logFile);
     sem_post(&(state->log_mutex));
     // todo after done, delete urself from active readers
-    
+    free(segments);
+    return 0;
 }
