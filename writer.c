@@ -97,17 +97,23 @@ int main(int argc, char** argv)
     printf("I AM %d (WRITER), I want to access segment %d\n", getpid(), record);
 
     state = shmat(id, NULL, 0);
-
+    int ticket_id = -1;
     while(1){
         sem_wait(&(state->cs_mutex));
+        if(ticket_id==-1){
+            ticket_id = state->next_write_ticket;
+            state->next_write_ticket++;
+        }
         in_cs = 1;
         // in critical section
         if(
             state->active_writers < N_ACTIVE_WRITERS && 
-            canQueue(record, state)==1 // if cannot queue, do nothing and check next time
+            canQueue(record, state)==1 &&// if cannot queue, do nothing and check next time
+            ticket_id == state->curr_write_ticket
         )
         {
             state->active_writers++;
+            state->curr_write_ticket++;
             // join the wait queue
             for(int i = 0; i < N_ACTIVE_WRITERS; i++){
                // place myself in writeheads (ie barber-queue)

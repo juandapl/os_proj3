@@ -111,15 +111,15 @@ int main(int argc, char** argv)
             {
                 state->active_readers++;
                 for(int i = 0; i < N_ACTIVE_READERS; i++){
-                if(state->readers[i].done==1 || state->readers[i].init==0){
-                    state->readers[i].active = 0;
-                    state->readers[i].segment_number = mynum;
-                    state->readers[i].current_reader = getpid();
-                    state->readers[i].done = 0;
-                    state->readers[i].init = 1;
-                    stored_at = i;
-                    break;
-                }
+                    if(state->readers[i].done==1 || state->readers[i].init==0){
+                        state->readers[i].active = 0;
+                        state->readers[i].segment_number = mynum;
+                        state->readers[i].current_reader = getpid();
+                        state->readers[i].done = 0;
+                        state->readers[i].init = 1;
+                        stored_at = i;
+                        break;
+                    }
                 }
                 sem_post(&(state->waiting_readers));
                 sem_post(&(state->cs_mutex));

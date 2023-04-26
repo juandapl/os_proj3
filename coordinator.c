@@ -28,6 +28,8 @@ void initialize_shared_struct(MemoryState* state)
     }
     state->active_writers = 0;
     state->active_readers = 0;
+    state->next_write_ticket = 0; // for process to grab
+    state->curr_write_ticket = 0; // the ticket that can go in next
     for(int i = 0; i < N_ACTIVE_READERS; i++)
     {
         state->readers[i].done = 0;

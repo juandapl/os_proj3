@@ -41,6 +41,8 @@ typedef struct MemoryState
     sem_t waiting_readers;
     sem_t reader_barber;
     int waiting;
+    int next_write_ticket;
+    int curr_write_ticket;
 } MemoryState;
 
 // from Prof. Delis
