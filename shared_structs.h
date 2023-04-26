@@ -43,6 +43,8 @@ typedef struct MemoryState
     int waiting;
     int next_write_ticket;
     int curr_write_ticket;
+    int next_read_ticket;
+    int curr_read_ticket;
 } MemoryState;
 
 // from Prof. Delis

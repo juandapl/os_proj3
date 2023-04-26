@@ -97,18 +97,24 @@ int main(int argc, char** argv)
 
     state = shmat(id, NULL, 0);
     int blocking_writer;
-
-   for(int n = 0; n < n_segments; n++){
+    int ticket_id;
+    for(int n = 0; n < n_segments; n++){
         // do this for every segment i asked for!
         int mynum = segments[n];
-        
-         while(1){
+        ticket_id = -1;
+        while(1){
             sem_wait(&(state->cs_mutex));
+            if(ticket_id==-1){
+                ticket_id = state->next_read_ticket;
+                state->next_read_ticket++;
+            }
             // Check if we can read. If we can read, read! (duh).
             // If we cannot read, line up behind the writer currently accessing our record.
-            if(canRead(mynum, state, &blocking_writer)==1 &&
-                state->active_readers < N_ACTIVE_READERS)
-            {
+            if(
+                canRead(mynum, state, &blocking_writer)==1 &&
+                state->active_readers < N_ACTIVE_READERS &&
+                ticket_id == state->curr_read_ticket
+            ){
                 state->active_readers++;
                 for(int i = 0; i < N_ACTIVE_READERS; i++){
                     if(state->readers[i].done==1 || state->readers[i].init==0){
