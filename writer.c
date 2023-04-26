@@ -104,7 +104,7 @@ int main(int argc, char** argv)
 
     state = shmat(id, NULL, 0);
 
-    FILE* logFile = fopen("log.txt", 'a');
+    FILE* logFile = fopen("log.txt", "a");
     t2 = (double) times(&tb2);
 
     sem_wait(&(state->log_mutex));

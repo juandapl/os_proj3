@@ -93,7 +93,7 @@ int main(int argc, char** argv)
 
     segments = separate_commas(segment_numbers, &n_segments);
 
-    FILE* logFile = fopen("log.txt", 'a');
+    FILE* logFile = fopen("log.txt", "a");
     t2 = (double) times(&tb2);
 
     sem_wait(&(state->log_mutex));
