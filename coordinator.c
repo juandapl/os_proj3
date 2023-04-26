@@ -12,6 +12,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <fcntl.h>
+#include <sys/wait.h>
 
 MemoryState* state;
 int id;
@@ -67,7 +68,6 @@ void destroy_shared_struct(MemoryState* state)
 
 void handle_exit()
 {
-    printf("GOT CTRL+C\n");
     signal(SIGINT, handle_exit);
     destroy_shared_struct(state);
     if(pid > 0){
