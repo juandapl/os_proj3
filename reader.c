@@ -127,11 +127,11 @@ int main(int argc, char** argv)
     }
     printf("\n");
 
-    int blocking_writer;
     int ticket_id;
     for(int n = 0; n < n_segments; n++){
         // do this for every segment i asked for!
         int mynum = segments[n];
+        int blocking_writer = -1;
         ticket_id = -1;
         while(1){
             sem_wait(&(state->cs_mutex));
@@ -190,9 +190,12 @@ int main(int argc, char** argv)
             }
             else{
                 sem_post(&(state->cs_mutex));
-                // line up behind the writer head that is currently using my segment:
-                printf("%d is blocking me\n",  state->write_heads[blocking_writer].current_writer);
-                sem_wait(&(state->write_heads[blocking_writer].proc_queue)); 
+                if(blocking_writer != -1){
+                    // if blocking writer, line up behind the writer head that is currently using my segment:
+                    printf("%d is blocking me\n",  state->write_heads[blocking_writer].current_writer);
+                    sem_wait(&(state->write_heads[blocking_writer].proc_queue)); 
+                }
+                // else, either full queue or not my turn (come back later)
             }
         }
     }
