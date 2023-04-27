@@ -15,9 +15,22 @@
 #include <semaphore.h>
 
 MemoryState* state;
+int in_cs;
+
+void handle_interrupt()
+{
+    signal(SIGINT, handle_interrupt);
+    printf("See you.\n");
+    if(in_cs)
+    {
+        sem_post(&(state->cs_mutex));
+    }
+    exit(0);
+}
 
 int main(int argc, char** argv)
 {
+    signal(SIGINT, handle_interrupt);
     int id;
     char c;
     // ./monitor -s shared mem id
@@ -43,55 +56,55 @@ int main(int argc, char** argv)
     
     state = shmat(id, NULL, 0);
     
-    system("clear");
+    while(1){
+        sleep(1);
+        system("clear");
 
-    int semvalue;
+        sem_wait(&(state->cs_mutex));
+        in_cs = 1;
+        printf("=== ACTIVE WRITERS: %d ===\n", state->active_writers);
 
-    sem_wait(&(state->cs_mutex));
-    printf("=== ACTIVE WRITERS: %d ===\n", state->active_writers);
-
-    printf("Writer PID, Segment Number, Active, Done, Readers Queued\n");
-    for(int i = 0; i < N_ACTIVE_WRITERS; i++)
-    {
-        if(state->write_heads[i].current_writer != 0)
+        printf("Writer PID, Segment Number, Active, Done, Readers Queued\n");
+        for(int i = 0; i < N_ACTIVE_WRITERS; i++)
         {
-            printf("%d, %d, %d, %d, %d\n", state->write_heads[i].current_writer,state->write_heads[i].segment_number,state->write_heads[i].active,state->write_heads[i].done, state->write_heads[i].waiting_readers);
+            if(state->write_heads[i].current_writer != 0 && state->write_heads[i].active != 0)
+            {
+                printf("%d, %d, %d, %d, %d\n", state->write_heads[i].current_writer,state->write_heads[i].segment_number,state->write_heads[i].active,state->write_heads[i].done, state->write_heads[i].waiting_readers);
+            }
         }
-    }
-    printf("\n");
+        printf("\n");
 
-    printf("=== ACTIVE READERS: %d ===\n", state->active_readers);
+        printf("=== ACTIVE READERS: %d ===\n", state->active_readers);
 
-    printf("Reader PID, Segment Number\n");
-    for(int i = 0; i < N_ACTIVE_READERS; i++)
-    {
-        if(state->readers[i].current_reader != 0)
+        printf("Reader PID, Segment Number, Active\n");
+        for(int i = 0; i < N_ACTIVE_READERS; i++)
         {
-        printf("%d, %d\n", state->readers[i].current_reader, state->readers[i].segment_number);
+            if(state->readers[i].current_reader != 0 && state->readers[i].active != 0)
+            {
+            printf("%d, %d, %d\n", state->readers[i].current_reader, state->readers[i].segment_number, state->readers[i].active);
+            }
         }
+        printf("\n");
+
+        printf("=== SEMAPHORE VALUES ===\n");
+        int barber_value;
+        int customers_value;
+        int waiting_readers_value;
+        int reader_barber_value;
+
+        sem_getvalue(&(state->barber), &barber_value);
+        sem_getvalue(&(state->customers), &customers_value); 
+        sem_getvalue(&(state->waiting_readers), &waiting_readers_value); 
+        sem_getvalue(&(state->reader_barber), &reader_barber_value); 
+
+        printf("barber = %d\n", barber_value);
+        printf("customers = %d\n", customers_value);
+        printf("waiting_readers = %d\n", waiting_readers_value);
+        printf("reader_barber = %d\n", reader_barber_value);
+
+        in_cs = 0;
+        sem_post(&(state->cs_mutex));
     }
-    printf("\n");
-
-    printf("=== SEMAPHORE VALUES ===\n");
-    int barber_value;
-    int customers_value;
-    int waiting_readers_value;
-    int reader_barber_value;
-
-    sem_getvalue(&(state->barber), &barber_value);
-    sem_getvalue(&(state->customers), &customers_value); 
-    sem_getvalue(&(state->waiting_readers), &waiting_readers_value); 
-    sem_getvalue(&(state->reader_barber), &reader_barber_value); 
-
-    printf("barber = %d\n", barber_value);
-    printf("customers = %d\n", customers_value);
-    printf("waiting_readers = %d\n", waiting_readers_value);
-    printf("reader_barber = %d\n", reader_barber_value);
-
-
-    sem_post(&(state->cs_mutex));
-
-
-
+    
     return 0;
 }

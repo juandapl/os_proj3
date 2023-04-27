@@ -40,7 +40,13 @@ void readFile(int time, char* path, int segment_number){
     FILE* fh = fopen (path, "rb");
     read_record(fh, segment_number, incoming_record);
     fclose(fh);
-    printf("Accessed: %ld %s %s GPA: %.2f\n", incoming_record->custid, incoming_record->FirstName, incoming_record->LastName, incoming_record->GPA);
+    printf("Accessed: %ld %s %s GPA: %.2f, delay: %ds\n", incoming_record->custid, incoming_record->FirstName, incoming_record->LastName, incoming_record->GPA, time);
+    printf("Marks: ");
+    for(int i=0; i < NumOfCourses; i++)
+    {
+        printf("%.2f ", incoming_record->Marks[i]);
+    }
+    printf("\n");
     free(incoming_record);
     printf("DONE!\n");
 }
@@ -143,7 +149,7 @@ int main(int argc, char** argv)
                 state->curr_read_ticket++;
                 for(int i = 0; i < N_ACTIVE_READERS; i++){
                     if(state->readers[i].done==1 || state->readers[i].init==0){
-                        state->readers[i].active = 0;
+                        state->readers[i].active = 1;
                         state->readers[i].segment_number = mynum;
                         state->readers[i].current_reader = getpid();
                         state->readers[i].done = 0;
@@ -164,7 +170,7 @@ int main(int argc, char** argv)
                 t2 = (double) times(&tb2);
                 sem_wait(&(state->log_mutex));
                 logFile = fopen("log.txt", "a");
-                fprintf(logFile, "%lf READER READING PID: %d, ACCESSING: %d\n", t2, getpid(), mynum);
+                fprintf(logFile, "%lf READER READING PID: %d, ACCESSING: %d, WITH DELAY: %d\n", t2, getpid(), mynum, time);
                 fclose(logFile);
                 sem_post(&(state->log_mutex));
 

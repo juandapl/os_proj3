@@ -29,7 +29,46 @@ void readFile(int time, char* path){
 
     read_record(fh, state->write_heads[stored_at].segment_number, incoming_record);
     fclose(fh);
-    printf("Accessed: %ld %s %s GPA: %.2f\n", incoming_record->custid, incoming_record->FirstName, incoming_record->LastName, incoming_record->GPA);
+    float old_gpa = incoming_record->GPA;
+
+    // modify a random mark:
+    struct tms tb1, tb2;
+    double t2 = (double) times(&tb2);
+    srand((unsigned int) t2);
+    int to_modify = rand()%8;
+    float new_mark = ((float)rand()/(float)(RAND_MAX)) * 4.0;
+    float old_mark = incoming_record->Marks[to_modify];
+    incoming_record->Marks[to_modify] = new_mark;
+
+    // log change
+
+    sem_wait(&(state->log_mutex));
+    FILE* logFile = fopen("log.txt", "a");
+    fprintf(logFile, "%lf WRITER PID: %d, ACCESSING: %d, MODIFIED MARK %d from %.2f to %.2f\n", t2, getpid(), state->write_heads[stored_at].segment_number, to_modify, old_mark, new_mark);
+    fclose(logFile);
+    sem_post(&(state->log_mutex));
+
+    // recalculate gpa:
+    float sum = 0; float avg;
+    for(int i = 0; i < NumOfCourses; i++)
+    {
+        sum += incoming_record->Marks[i];
+    }
+    avg = sum / NumOfCourses;
+    incoming_record->GPA = avg;
+
+    // write change:
+    fh = fopen(path, "r+b");
+    write_record(fh, state->write_heads[stored_at].segment_number, incoming_record);
+    fclose(fh);
+   
+    printf("Accessed: %ld %s %s Old GPA: %.2f, Modified GPA: %.2f, delay: %ds\n", incoming_record->custid, incoming_record->FirstName, incoming_record->LastName, old_gpa, incoming_record->GPA, time);
+    printf("Marks: ");
+    for(int i=0; i < NumOfCourses; i++)
+    {
+        printf("%.2f ", incoming_record->Marks[i]);
+    }
+    printf("\n");
     free(incoming_record);
     printf("DONE!\n");
 }
@@ -157,7 +196,7 @@ int main(int argc, char** argv)
             t2 = (double) times(&tb2);
             sem_wait(&(state->log_mutex));
             logFile = fopen("log.txt", "a");
-            fprintf(logFile, "%lf WRITER WRITING PID: %d, ACCESSING: %d\n", t2, getpid(), record);
+            fprintf(logFile, "%lf WRITER WRITING PID: %d, ACCESSING: %d, WITH DELAY: %d\n", t2, getpid(), record, time);
             fclose(logFile);
             sem_post(&(state->log_mutex));
 
@@ -170,7 +209,7 @@ int main(int argc, char** argv)
             state->active_writers--;
 
             // todo after exiting, flush all readers queuing behind your writer head: (until sem value reaches 0)
-            printf("I have %d behind me", state->write_heads[stored_at].waiting_readers);
+            printf("I have %d waiting readers behind me. Setting them free: \n", state->write_heads[stored_at].waiting_readers);
             while (state->write_heads[stored_at].waiting_readers > 0)
             {
                 state->write_heads[stored_at].waiting_readers--;

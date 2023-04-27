@@ -10,10 +10,17 @@
 void read_record(FILE* fh, int segment_number, MyRecord* dest)
 {
     FILE* temp = fh;
-    printf("seg: %d\n", segment_number);
-    printf("size: %ld\n", sizeof(MyRecord));
+    //printf("seg: %d\n", segment_number);
+    //printf("size: %ld\n", sizeof(MyRecord));
     fseek(temp, segment_number*sizeof(MyRecord), SEEK_SET);   
     fread(dest, sizeof(MyRecord), 1, temp);
+}
+
+void write_record(FILE* fh, int segment_number, MyRecord* src)
+{
+    FILE* temp = fh;
+    fseek(temp, segment_number*sizeof(MyRecord), SEEK_SET);   
+    fwrite(src, sizeof(MyRecord), 1, temp);
 }
 
 int* separate_commas(char* thing, int* size) // this is annoying
@@ -39,5 +46,7 @@ int* separate_commas(char* thing, int* size) // this is annoying
     *size = n_things;
     return dest;
 }
+
+// float calculate_avg_()
 
 
