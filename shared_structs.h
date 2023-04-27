@@ -36,10 +36,8 @@ typedef struct MemoryState
     char test[6];
     sem_t cs_mutex; // protects memory access
     sem_t writers_mutex; // protects active_writers
-    sem_t barber;
     sem_t customers;
     sem_t waiting_readers;
-    sem_t reader_barber;
     sem_t log_mutex;
     int waiting;
     int next_write_ticket;

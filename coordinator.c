@@ -51,20 +51,16 @@ void initialize_shared_struct(MemoryState* state)
     // initialize semaphores
     int isVal;
     sem_init(&(state->cs_mutex), 1, 1);
-    sem_init(&(state->barber), 1, 0);
     sem_init(&(state->customers), 1, 0);
     sem_init(&(state->waiting_readers), 1, 0);
-    sem_init(&(state->reader_barber), 1, 0);
     sem_init(&(state->log_mutex), 1, 1);
 }
 
 void destroy_shared_struct(MemoryState* state)
 {
     sem_destroy(&(state->cs_mutex));
-    sem_destroy(&(state->barber));
     sem_destroy(&(state->customers));
     sem_destroy(&(state->waiting_readers));
-    sem_destroy(&(state->reader_barber));
     sem_destroy(&(state->log_mutex));
 }
 
@@ -131,25 +127,5 @@ int main()
     // printf("Enter when you're done: ");
     // char inputbuff[256];
     // fgets(inputbuff, 256, stdin);
-    pid = fork();
-    if(pid==0){
-        //printf("IN CHILD: readers\n");
-        while(1){
-            printf("barber sleep: readers\n");
-            sem_wait(&(state->waiting_readers));
-            printf("barber woke (new reader!)\n");
-            sem_post(&(state->reader_barber));
-        }
-    }
-    else{
-        signal(SIGINT, handle_exit);
-        //printf("in parent: readers\n");
-        while(1){
-            printf("barber sleep: writers\n");
-            sem_wait(&(state->customers));
-            printf("barber woke (new writer!)\n");
-            sem_post(&(state->barber));
-            // give-a-haircut(); -> allow writer to write to x if another writer isn't already writing to x
-        }
-    }
+    while(1){}
 }

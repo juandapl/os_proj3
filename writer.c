@@ -188,7 +188,6 @@ int main(int argc, char** argv)
            sem_post(&(state->customers));
            in_cs = 0;
            sem_post(&(state->cs_mutex));
-           sem_wait(&(state->barber)); 
 
            //sem_wait(&(state->cs_mutex));
            //printf("active is now %d\n", state->write_heads[stored_at].active);

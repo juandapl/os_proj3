@@ -161,7 +161,6 @@ int main(int argc, char** argv)
                 }
                 sem_post(&(state->waiting_readers));
                 sem_post(&(state->cs_mutex));
-                sem_wait(&(state->reader_barber));
 
                 // i'm allowed to read! better tell everyone --
                 sem_wait(&(state->cs_mutex));
