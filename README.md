@@ -29,7 +29,7 @@ Run the command `make clean` to delete all files
 
 The overall structure of the programs is the coordinator initializing the shared memory, the readers and writers doing their operations with respect to the critical section problem, and the monitor monitoring. The data is logged to log.txt while the readers and writers execute.
 
-Upon invoking a reader/writer, the process checks whether or not it is able to enter the waiting queue for its process type. This is determined by whether or not there are conflicting processes that already exists in the waiting queue. 
+Upon invoking a reader/writer, the process checks whether or not it is able to enter the waiting queue for its process type. This is determined by whether or not there are conflicting processes that already exists in the waiting queue. Once done, the process is free to continue. Once done, it sets its flags in the waiting queue to indicate completion, and exits as it describe its usage statistics.
 
 ### Semaphores
 
