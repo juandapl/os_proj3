@@ -70,6 +70,7 @@ void readFile(int time, char* path){
     }
     printf("\n");
     free(incoming_record);
+    state->total_records_accessed++;
     printf("DONE!\n");
 }
 
@@ -232,6 +233,12 @@ int main(int argc, char** argv)
     logFile = fopen("log.txt", "a");
     fprintf(logFile, "%lf WRITER COMPLETE PID: %d, ACCESSING: %d\n", t2, getpid(), record);
     fclose(logFile);
+
+    FILE* statFile = fopen("write_stats.bin", "ab");
+    double t_total = (t2-t1) / ticspersec;
+    fwrite(&t_total, sizeof(double), 1, statFile);
+    fclose(statFile);
+
     sem_post(&(state->log_mutex));
     return 0;
 }

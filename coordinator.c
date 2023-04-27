@@ -8,6 +8,7 @@
 #include <string.h>
 #include <semaphore.h>
 #include "shared_structs.h"
+#include "helpers.h"
 #include <signal.h>
 #include <unistd.h>
 #include <stdlib.h>
@@ -45,8 +46,9 @@ void initialize_shared_struct(MemoryState* state)
         state->readers[i].active = 0;
         state->readers[i].current_reader = 0;
     }
+    state->total_records_accessed = 0;
     
-    // initialize semaphores TODO
+    // initialize semaphores
     int isVal;
     sem_init(&(state->cs_mutex), 1, 1);
     sem_init(&(state->barber), 1, 0);
@@ -66,9 +68,41 @@ void destroy_shared_struct(MemoryState* state)
     sem_destroy(&(state->log_mutex));
 }
 
+void show_final_stats()
+{
+    printf("=== FINAL STATS ===\n");
+    sem_wait(&(state->log_mutex));
+
+    int writes = n_records("write_stats.bin", sizeof(double));
+    int reads =  n_records("read_stats.bin", sizeof(double));
+    printf("Number of writes performed = %d\n", writes);
+    printf("Average writing time = %.2fs\n", calculate_avg("write_stats.bin"));
+    printf("Number of reads performed = %d\n", reads);
+    printf("Average reading time = %.2fs\n", calculate_avg("read_stats.bin"));
+
+
+
+
+    sem_post(&(state->log_mutex));
+}
+
+void initialize_log_files()
+{
+    FILE* logFile = fopen("log.txt", "w");
+    fclose(logFile);
+    FILE* write_stats = fopen("write_stats.bin", "wb");
+    fclose(write_stats);
+    FILE* read_stats = fopen("read_stats.bin", "wb");
+    fclose(read_stats);
+}
+
 void handle_exit()
 {
     signal(SIGINT, handle_exit);
+    if(pid > 0)
+    {
+        show_final_stats();
+    }
     destroy_shared_struct(state);
     if(pid > 0){
         int status;
@@ -87,11 +121,12 @@ int main()
         printf("error opening shared memory\n");
         return 1;
     }
-    printf("%d\n", (int) id);
+    printf("Shared memory ID: %d\n", (int) id);
 
     // attach shared mem and initialize the shared struct
     state = shmat(id, NULL, 0);
     initialize_shared_struct(state);
+    initialize_log_files();
     strcpy(state->test, "test");
 
     // // pause for test
@@ -100,21 +135,21 @@ int main()
     // fgets(inputbuff, 256, stdin);
     pid = fork();
     if(pid==0){
-        printf("IN CHILD: readers\n");
+        //printf("IN CHILD: readers\n");
         while(1){
-            printf("barber sleep\n");
+            printf("barber sleep: readers\n");
             sem_wait(&(state->waiting_readers));
-            printf("barber woke (new customer!)\n");
+            printf("barber woke (new reader!)\n");
             sem_post(&(state->reader_barber));
         }
     }
     else{
         signal(SIGINT, handle_exit);
-        printf("in parent: readers\n");
+        //printf("in parent: readers\n");
         while(1){
             printf("barber sleep: writers\n");
             sem_wait(&(state->customers));
-            printf("barber woke (new customer!)\n");
+            printf("barber woke (new writer!)\n");
             sem_post(&(state->barber));
             // give-a-haircut(); -> allow writer to write to x if another writer isn't already writing to x
         }

@@ -8,7 +8,7 @@
 #include <sys/shm.h>
 #include <stdio.h>
 #include <string.h>
-#include "shared_structs.h"
+#include "helpers.h"
 #include <signal.h>
 #include <unistd.h>
 #include <stdlib.h>
@@ -16,6 +16,7 @@
 
 MemoryState* state;
 int in_cs;
+int in_log;
 
 void handle_interrupt()
 {
@@ -24,6 +25,10 @@ void handle_interrupt()
     if(in_cs)
     {
         sem_post(&(state->cs_mutex));
+    }
+    if(in_log)
+    {
+        sem_post(&(state->log_mutex));
     }
     exit(0);
 }
@@ -104,6 +109,22 @@ int main(int argc, char** argv)
 
         in_cs = 0;
         sem_post(&(state->cs_mutex));
+
+        printf("\n");
+
+        printf("=== GENERAL STATS ===\n");
+        sem_wait(&(state->log_mutex));
+        in_log = 1;
+        printf("Number of writes performed = %d\n", n_records("write_stats.bin", sizeof(double)));
+        printf("Average writing time = %.2fs\n", calculate_avg("write_stats.bin"));
+        printf("Number of reads performed = %d\n", n_records("read_stats.bin", sizeof(double)));
+        printf("Average reading time = %.2fs\n", calculate_avg("read_stats.bin"));
+        printf("Total records accessed = %d\n", state->total_records_accessed);
+   
+
+        in_log = 0;
+        sem_post(&(state->log_mutex));
+
     }
     
     return 0;

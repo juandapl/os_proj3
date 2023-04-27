@@ -8,6 +8,9 @@
 
 void read_record(FILE* fh, int segment_number, MyRecord* dest);
 void write_record(FILE* fh, int segment_number, MyRecord* src);
+int n_records(char* path, int size);
+double calculate_avg(char* path);
+double get_max_time(char* path1, char* path2);
 
 int* separate_commas(char* thing, int* size);
 #endif

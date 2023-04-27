@@ -46,6 +46,7 @@ typedef struct MemoryState
     int curr_write_ticket;
     int next_read_ticket;
     int curr_read_ticket;
+    int total_records_accessed;
 } MemoryState;
 
 // from Prof. Delis

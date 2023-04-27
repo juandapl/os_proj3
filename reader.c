@@ -48,6 +48,7 @@ void readFile(int time, char* path, int segment_number){
     }
     printf("\n");
     free(incoming_record);
+    state->total_records_accessed++;
     printf("DONE!\n");
 }
 
@@ -205,7 +206,15 @@ int main(int argc, char** argv)
         fprintf(logFile, "%d ", segments[i]);
     }
     fprintf(logFile, "\n");
+
+    FILE* statFile = fopen("read_stats.bin", "ab");
+    double t_total = (t2-t1) / ticspersec;
+    fwrite(&t_total, sizeof(double), 1, statFile);
+    fclose(statFile);
+
     fclose(logFile);
+
+
     sem_post(&(state->log_mutex));
     // todo after done, delete urself from active readers
     free(segments);
