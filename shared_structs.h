@@ -5,7 +5,7 @@
 #include <sys/ipc.h>
 #include <semaphore.h>
 
-#define N_ACTIVE_WRITERS 10
+#define N_ACTIVE_WRITERS 1
 #define N_ACTIVE_READERS 100
 
 typedef struct WriteHead

@@ -80,6 +80,9 @@ double calculate_avg(char* path)
             sum += record;
         }
         fclose(f);
+        if(sum==0){
+            return 0.0;
+        }
         return sum/n;
         
     } else {
