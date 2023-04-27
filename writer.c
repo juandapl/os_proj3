@@ -185,7 +185,6 @@ int main(int argc, char** argv)
                    break;
                }
            }
-           sem_post(&(state->customers));
            in_cs = 0;
            sem_post(&(state->cs_mutex));
 

@@ -17,7 +17,6 @@
 
 MemoryState* state;
 int id;
-int pid;
 
 void initialize_shared_struct(MemoryState* state)
 {
@@ -51,16 +50,16 @@ void initialize_shared_struct(MemoryState* state)
     // initialize semaphores
     int isVal;
     sem_init(&(state->cs_mutex), 1, 1);
-    sem_init(&(state->customers), 1, 0);
-    sem_init(&(state->waiting_readers), 1, 0);
     sem_init(&(state->log_mutex), 1, 1);
 }
 
 void destroy_shared_struct(MemoryState* state)
 {
+    for(int i = 0; i < N_ACTIVE_WRITERS; i++)
+    {
+        sem_destroy(&(state->write_heads[i].proc_queue));
+    }
     sem_destroy(&(state->cs_mutex));
-    sem_destroy(&(state->customers));
-    sem_destroy(&(state->waiting_readers));
     sem_destroy(&(state->log_mutex));
 }
 
@@ -93,16 +92,8 @@ void initialize_log_files()
 void handle_exit()
 {
     signal(SIGINT, handle_exit);
-    if(pid > 0)
-    {
-        show_final_stats();
-    }
+    show_final_stats();
     destroy_shared_struct(state);
-    if(pid > 0){
-        int status;
-        kill(pid, SIGKILL);
-        waitpid(pid, &status, 0);
-    }
     int err = shmctl(id, IPC_RMID, 0);
     exit(0);
 }

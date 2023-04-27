@@ -91,16 +91,6 @@ int main(int argc, char** argv)
         }
         printf("\n");
 
-        printf("=== SEMAPHORE VALUES ===\n");
-        int customers_value;
-        int waiting_readers_value;
-
-        sem_getvalue(&(state->customers), &customers_value); 
-        sem_getvalue(&(state->waiting_readers), &waiting_readers_value); 
-
-        printf("customers = %d\n", customers_value);
-        printf("waiting_readers = %d\n", waiting_readers_value);
-
         in_cs = 0;
         sem_post(&(state->cs_mutex));
 

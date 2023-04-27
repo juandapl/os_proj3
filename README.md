@@ -33,12 +33,18 @@ Upon invoking a reader/writer, the process checks whether or not it is able to e
 
 ### Semaphores
 
+Critical Section Mutex: Only 1 process at a time should be able to access the critical section. This is done by the critical section mutex semaphore.
 
-### Piping conventions
 
-#### Sending data
 
-#### Receiving data
+
+### Critical Section Problem
+
+#### Mutual Exclusion
+
+#### Progress
+
+#### Bounded Waiting
 
 
 *For a working draft of the project's outline and pseudocode, see `reqs.md`.*

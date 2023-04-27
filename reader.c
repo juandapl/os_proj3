@@ -159,7 +159,6 @@ int main(int argc, char** argv)
                         break;
                     }
                 }
-                sem_post(&(state->waiting_readers));
                 sem_post(&(state->cs_mutex));
 
                 // i'm allowed to read! better tell everyone --
