@@ -4,16 +4,16 @@ clean:
 	rm -f writer coordinator reader monitor helpers.o writer.o reader.o coordinator.o monitor.o
 
 writer: writer.o helpers.o
-	gcc writer.o helpers.o -o writer -lpthread
+	gcc writer.o helpers.o -o writer -lpthread -lm
 
 monitor: monitor.o helpers.o
-	gcc monitor.o helpers.o -o monitor -lpthread
+	gcc monitor.o helpers.o -o monitor -lpthread -lm
 
 reader: reader.o helpers.o
-	gcc reader.o helpers.o -g -o reader -lpthread
+	gcc reader.o helpers.o -g -o reader -lpthread -lm
 
 coordinator: coordinator.o helpers.o
-	gcc coordinator.o helpers.o -o coordinator -lpthread
+	gcc coordinator.o helpers.o -o coordinator -lpthread -lm
 
 monitor.o: monitor.c shared_structs.h
 	gcc monitor.c -c

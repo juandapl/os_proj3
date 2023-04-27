@@ -79,10 +79,8 @@ void show_final_stats()
     printf("Average writing time = %.2fs\n", calculate_avg("write_stats.bin"));
     printf("Number of reads performed = %d\n", reads);
     printf("Average reading time = %.2fs\n", calculate_avg("read_stats.bin"));
-
-
-
-
+    printf("Maximum access time = %.2fs\n", get_max_time("write_stats.bin", "read_stats.bin"));
+    printf("Total records accessed = %d\n", state->total_records_accessed);
     sem_post(&(state->log_mutex));
 }
 

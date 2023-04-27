@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <math.h>
 
 
 void read_record(FILE* fh, int segment_number, MyRecord* dest)
@@ -78,7 +79,9 @@ double calculate_avg(char* path)
             fread(&record, sizeof(double), 1, f);
             sum += record;
         }
+        fclose(f);
         return sum/n;
+        
     } else {
 
         return 0;
@@ -87,7 +90,33 @@ double calculate_avg(char* path)
 
 double get_max_time(char* path1, char* path2)
 {
-    
+    double max = 0;
+    if (access(path1, F_OK) == 0) {   
+    // file exists
+        FILE* f = fopen(path1, "rb");
+        int n = n_records(path1, sizeof(double));
+        for(int i = 0; i < n; i++)
+        {
+            double record;
+            fread(&record, sizeof(double), 1, f);
+            max = fmax(max, record);
+        }
+        fclose(f);
+    } 
+    if (access(path2, F_OK) == 0) {   
+    // file exists
+        FILE* f = fopen(path2, "rb");
+        int n = n_records(path2, sizeof(double));
+        for(int i = 0; i < n; i++)
+        {
+            double record;
+            fread(&record, sizeof(double), 1, f);
+            max = fmax(max, record);
+        }
+        fclose(f);
+    } 
+
+    return max;
 }
 
 
